@@ -31,7 +31,7 @@ jupyter notebook tutorial.ipynb
 
 
 ## Contact
-For questions or collaborations, contact MohammadReza EskandariNasab as mreskandarinasab@gamil.com.
+For questions or collaborations, contact MohammadReza EskandariNasab at mreskandarinasab@gamil.com.
 
 ## Citation
 Please note that the paper detailing the DualGAN framework is currently under submission. If you use this framework or any part of it in your work, please cite us appropriately once the paper is published. Check back here for the citation details upon publication.
