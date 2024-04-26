@@ -7,6 +7,9 @@ DualGAN is a sophisticated framework that integrates the advantages of Autoencod
 ## Abstract
 Existing GAN-based methods for time series generation face challenges such as slow convergence and information loss in embedding spaces. DualGAN introduces a framework that combines the strengths of an Autoencoder-generated embedding space with adversarial training dynamics of GANs. This framework includes specialized loss functions and supervision from a supervisor network, capturing stepwise conditional distributions of the data, operating within the latent space, and receiving crucial feedback from the discriminator based on feature space. The inclusion of an early stopping algorithm and a complex neural network architecture improves stability and effectiveness across varied time series lengths. Currently, the paper describing this framework is under submission.
 
+<img src="dualgan.svg" width="600" alt="DualGAN Architecture" title="DualGAN Architecture">
+
+
 ## Installation
 Clone the repository and install dependencies:
 ```bash
