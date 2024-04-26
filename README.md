@@ -1,1 +1,1 @@
-# DualGAN: Dual Adversarial Time Series Generation with Generative Adversarial Networks and Autoencoders
+# TimeSeries-DataAugmentation-TimeGAN-catch22
