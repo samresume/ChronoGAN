@@ -1,16 +1,4 @@
-"""Time-series Generative Adversarial Networks (TimeGAN) Codebase.
-
-Reference: Jinsung Yoon, Daniel Jarrett, Mihaela van der Schaar, 
-"Time-series Generative Adversarial Networks," 
-Neural Information Processing Systems (NeurIPS), 2019.
-
-Paper link: https://papers.nips.cc/paper/8789-time-series-generative-adversarial-networks
-
-Last updated Date: April 24th 2020
-Code author: Jinsung Yoon (jsyoon0823@gmail.com)
-
------------------------------
-
+"""
 data_loading.py
 
 (0) MinMaxScaler: Min Max normalizer
@@ -23,7 +11,7 @@ data_loading.py
 ## Necessary Packages
 import numpy as np
 import pandas as pd
-
+import pickle
 
 def MinMaxScaler(data):
   """Min Max normalizer.
@@ -82,18 +70,21 @@ def real_data_loading (data_name, seq_len):
   """Load and preprocess real-world datasets.
   
   Args:
-    - data_name: stock or energy
+    - data_name: stock, energy, ECG, or SWANSF
     - seq_len: sequence length
     
   Returns:
     - data: preprocessed data.
   """  
-  assert data_name in ['stock','electricity', 'ECG']
+  assert data_name in ['stock','energy', 'ECG', 'SWANSF']
   
   if data_name == 'stock':
     ori_data = np.loadtxt('data/stock_data.csv', delimiter = ",",skiprows = 1)
-  elif data_name == 'electricity':
-    ori_data = np.loadtxt('data/ETTh_data.csv', delimiter = ",",skiprows = 1)
+  elif data_name == 'energy':
+    ori_data = np.loadtxt('data/energy_data.csv', delimiter = ",",skiprows = 1)
+  elif data_name == 'SWANSF':
+    with open('data/swansf.pkl', 'rb') as f:
+        ori_data = pickle.load(f)
   elif data_name == 'ECG':
     parsed_data = []
     with open('data/ECG5000_data.txt', 'r') as file:
@@ -112,8 +103,17 @@ def real_data_loading (data_name, seq_len):
     np_array_3d = df.values.reshape((4500, 140, 1))
     
   data = []      
-  if data_name != 'ECG':
-      # Flip the data to make chronological data
+  if data_name == 'ECG':
+    data_reshaped = np_array_3d.reshape(np_array_3d.shape[0], np_array_3d.shape[1])
+    data_transposed = data_reshaped.T
+    scaled_data_transposed = MinMaxScaler(data_transposed)
+    data = scaled_data_transposed.T.reshape(np_array_3d.shape[0], np_array_3d.shape[1], 1)
+        
+  elif data_name == 'SWANSF': 
+    data = ori_data
+    
+  else:
+    # Flip the data to make chronological data
       ori_data = ori_data[::-1]
       # Normalize the data
       ori_data = MinMaxScaler(ori_data)
@@ -130,11 +130,7 @@ def real_data_loading (data_name, seq_len):
       
       for i in range(len(temp_data)):
         data.append(temp_data[idx[i]])
-  else:
-    data_reshaped = np_array_3d.reshape(np_array_3d.shape[0], np_array_3d.shape[1])
-    data_transposed = data_reshaped.T
-    scaled_data_transposed = MinMaxScaler(data_transposed)
-    data = scaled_data_transposed.T.reshape(np_array_3d.shape[0], np_array_3d.shape[1], 1)
+    
 
     
     

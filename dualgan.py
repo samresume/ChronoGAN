@@ -6,6 +6,7 @@
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 from metrics.discriminative_metrics import discriminative_score_metrics
+from metrics.predictive_metrics import predictive_score_metrics
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -86,7 +87,10 @@ def dualgan (ori_data, parameters, num_samples):
     
   final_generated = []
   saver = None
-  global_summing = 100
+  global_summing = 10
+  p1 = None
+  p2 = None
+
   
   def embedder (X, T):
     """Embedding network between original feature space to latent space.
@@ -188,31 +192,6 @@ def dualgan (ori_data, parameters, num_samples):
     
     return S
           
-  def discriminator (H, T):
-    """Discriminate the original and synthetic time-series data.
-    
-    Args:
-      - H: latent representation
-      - T: input time information
-      
-    Returns:
-      - Y_hat: classification results between original and synthetic time-series
-    """        
-    with tf.compat.v1.variable_scope("discriminator", reuse = tf.compat.v1.AUTO_REUSE):
-    
-      d_cell_first = tf.compat.v1.nn.rnn_cell.MultiRNNCell([rnn_cell(module_first, hidden_dim) for _ in range(num_layers)])
-      d_outputs_first, d_last_states = tf.compat.v1.nn.dynamic_rnn(d_cell_first, H, dtype=tf.float32, sequence_length = T)
-    
-      d_cell_second = tf.compat.v1.nn.rnn_cell.MultiRNNCell([rnn_cell(module_second, hidden_dim) for _ in range(num_layers)])
-      d_outputs_second, d_last_states = tf.compat.v1.nn.dynamic_rnn(d_cell_second, H, dtype=tf.float32, sequence_length = T)
-            
-      combined = tf.concat([d_outputs_first, d_outputs_second], axis=-1)
-
-      # Dimensionality reduction to match input attribute size
-      Y_hat = tf.compat.v1.layers.dense(combined, 1, activation=None)
-    
-    return Y_hat   
-
 
 
   def ae_discriminator (X, T):
@@ -260,10 +239,6 @@ def dualgan (ori_data, parameters, num_samples):
   X_tilde_fake_second = recovery(E_hat, T)
   Y_ae_fake_e_second = ae_discriminator(X_tilde_fake_second, T)
     
-  # Discriminator
-  Y_fake = discriminator(H_hat, T)
-  Y_real = discriminator(H, T)     
-  Y_fake_e = discriminator(E_hat, T)
     
     
   # Variables        
@@ -271,17 +246,9 @@ def dualgan (ori_data, parameters, num_samples):
   r_vars = [v for v in tf.compat.v1.trainable_variables() if v.name.startswith('recovery')]
   g_vars = [v for v in tf.compat.v1.trainable_variables() if v.name.startswith('generator')]
   s_vars = [v for v in tf.compat.v1.trainable_variables() if v.name.startswith('supervisor')]
-  d_vars = [v for v in tf.compat.v1.trainable_variables() if v.name.startswith('discriminator')]
   d_ae_vars = [v for v in tf.compat.v1.trainable_variables() if v.name.startswith('ae_discriminator')]
 
     
-  # Discriminator loss
-  D_loss_real = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_real), Y_real)
-  D_loss_fake = tf.compat.v1.losses.sigmoid_cross_entropy(tf.zeros_like(Y_fake), Y_fake)
-  D_loss_fake_e = tf.compat.v1.losses.sigmoid_cross_entropy(tf.zeros_like(Y_fake_e), Y_fake_e)
-  D_loss = D_loss_real + D_loss_fake + gamma * D_loss_fake_e
-
-
   # AE Discriminator loss
   D_ae_loss_real = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_ae_real), Y_ae_real)
   D_ae_loss_fake = tf.compat.v1.losses.sigmoid_cross_entropy(tf.zeros_like(Y_ae_fake), Y_ae_fake)
@@ -296,14 +263,12 @@ def dualgan (ori_data, parameters, num_samples):
             
   # Generator loss
   # 1. Adversarial loss
-  G_loss_U = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_fake), Y_fake)
-  G_loss_U_e = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_fake_e), Y_fake_e)
     
   G_loss_U_ae = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_ae_fake_e), Y_ae_fake_e)
   G_loss_U_ae_e = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_ae_fake_e_second), Y_ae_fake_e_second)
     
   # 2. Supervised loss
-  G_loss_S = tf.compat.v1.losses.mean_squared_error(H[:,1:,:], H_hat_supervise[:,:-1,:])
+  G_loss_S = tf.compat.v1.losses.mean_squared_error(H[:,2:,:], H_hat_supervise[:,:-2,:])
     
   # 3. Two Momments
   G_loss_V1 = tf.reduce_mean(tf.abs(tf.sqrt(tf.nn.moments(X_hat,[0])[1] + 1e-6) - tf.sqrt(tf.nn.moments(X,[0])[1] + 1e-6)))
@@ -420,7 +385,7 @@ def dualgan (ori_data, parameters, num_samples):
   ts_structure = mean_weighted_average_mse + std_weighted_average_mse + mean_slope_mse + std_slope_mse + mean_median_mse + std_median_mse + mean_skew_mse + std_skew_mse
 
   # 4. Summation
-  G_loss = (G_loss_U_ae + gamma * G_loss_U_ae_e) + 100 * tf.sqrt(G_loss_S) + 100*G_loss_V  + 50 * ts_structure
+  G_loss = (G_loss_U_ae + gamma * G_loss_U_ae_e) + 100 * G_loss_S + 100*G_loss_V  + 20 * ts_structure
             
   # Embedder network loss
   lambda_c = 0.01
@@ -433,7 +398,6 @@ def dualgan (ori_data, parameters, num_samples):
   # optimizer
   E0_solver = tf.compat.v1.train.AdamOptimizer().minimize(E_loss0, var_list = e_vars + r_vars)
   E_solver = tf.compat.v1.train.AdamOptimizer().minimize(E_loss, var_list = e_vars + r_vars)
-  D_solver = tf.compat.v1.train.AdamOptimizer().minimize(D_loss, var_list = d_vars)
   D_ae_solver = tf.compat.v1.train.AdamOptimizer().minimize(D_ae_loss, var_list = d_ae_vars)
   D_ae_solver_second = tf.compat.v1.train.AdamOptimizer().minimize(D_ae_loss_second, var_list = d_ae_vars)
   G_solver = tf.compat.v1.train.AdamOptimizer().minimize(G_loss, var_list = g_vars + s_vars)      
@@ -503,7 +467,8 @@ def dualgan (ori_data, parameters, num_samples):
     Z_mb = random_generator(batch_size, z_dim, T_mb, max_seq_len)
     # Check discriminator loss before updating
     
-    check_d_ae_loss = sess.run(D_ae_loss_second, feed_dict={X: X_mb, T: T_mb, Z: Z_mb})
+    step_d_ae_loss_second = 0
+    check_d_ae_loss = sess.run(D_ae_loss_second, feed_dict={Z: Z_mb, X: X_mb, T: T_mb})
     # Train discriminator (only when the discriminator does not work well)
     if (check_d_ae_loss > 0.15):        
       _, step_d_ae_loss_second, step_d_ae_loss = sess.run([D_ae_solver_second, D_ae_loss_second, D_ae_loss], feed_dict={X: X_mb, T: T_mb, Z: Z_mb})
@@ -521,8 +486,9 @@ def dualgan (ori_data, parameters, num_samples):
             ', AE_D_loss: ' + str(np.round(step_d_ae_loss,4))
            )
     
-
-  if itt >= 5000 and (itt % 500 == 0 or itt==iterations-1):
+  
+    
+    if (itt >= int(iterations*0.5)) and (itt % 500 == 0 or itt==iterations-1):
         
         saver = tf.compat.v1.train.Saver()
         Z_mb = random_generator(no, z_dim, ori_time, max_seq_len)
@@ -536,11 +502,46 @@ def dualgan (ori_data, parameters, num_samples):
         generated_data = generated_data + min_val
         
         
-        metric_iteration = 5
+        metric_iteration = 6
         discriminative_score = list()
         for _ in range(metric_iteration):
             temp_disc = discriminative_score_metrics(ori_data, generated_data)
             discriminative_score.append(temp_disc)
+            
+        discriminative_score = np.array(discriminative_score)
+
+        Q1 = np.percentile(discriminative_score, 25)
+        Q3 = np.percentile(discriminative_score, 75)
+
+        # Calculate the IQR
+        IQR = Q3 - Q1
+
+        # Determine outliers (using 1.5 * IQR rule)
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        # Filter out outliers
+        filtered_discriminative_score = discriminative_score[(discriminative_score <= upper_bound)]
+            
+        predictive_score = list()
+        for tt in range(metric_iteration):
+            temp_pred = predictive_score_metrics(ori_data, generated_data)
+            predictive_score.append(temp_pred)   
+            
+        predictive_score = np.array(predictive_score)
+
+        Q1 = np.percentile(predictive_score, 25)
+        Q3 = np.percentile(predictive_score, 75)
+
+        # Calculate the IQR
+        IQR = Q3 - Q1
+
+        # Determine outliers (using 1.5 * IQR rule)
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        # Filter out outliers
+        filtered_predictive_score = predictive_score[(predictive_score <= upper_bound)]
             
         mean_real = np.mean(ori_data, axis=0)
         mean_synthetic = np.mean(generated_data, axis=0)
@@ -549,9 +550,22 @@ def dualgan (ori_data, parameters, num_samples):
         variance_real = np.var(ori_data, axis=0)
         variance_synthetic = np.var(generated_data, axis=0)
         mse_variance = np.mean((variance_real - variance_synthetic) ** 2)
-        mean_dis_score = np.round(np.mean(discriminative_score), 4)
         
-        summing = mean_dis_score
+        mean_dis_score = np.round(np.min(filtered_discriminative_score), 4)
+        mean_pre_score = np.round(np.min(filtered_predictive_score), 4)
+        
+        if p1 == None and p2 == None:
+            if mean_dis_score == 0:
+                p1 = 1
+                p2 = 1
+            elif mean_pre_score == 0:
+                p1 = 1       
+                p2 = mean_dis_score / (mse_mean + mse_variance)
+            else:
+                p1 = mean_dis_score / mean_pre_score        
+                p2 = mean_dis_score / (mse_mean + mse_variance)
+        
+        summing = mean_dis_score + p1 * mean_pre_score + p2 * ( mse_mean + mse_variance )
             
         if summing <= global_summing:
             global_summing = summing
@@ -565,21 +579,8 @@ def dualgan (ori_data, parameters, num_samples):
 
   #-------------------------------------------------------------------
     
-  if num_samples == "same" and global_summing != 0.5:
+  if num_samples == "same":
     return final_generated
-  
-  elif num_samples == "same" and global_summing == 0.5:
-    Z_mb = random_generator(no, z_dim, ori_time, max_seq_len)
-    generated_data_curr = sess.run(X_hat, feed_dict={Z: Z_mb, X: ori_data, T: ori_time})    
-    generated_data = list()
-    for i in range(no):
-        temp = generated_data_curr[i,:ori_time[i],:]
-        generated_data.append(temp)
-    # Renormalization
-    generated_data = generated_data * max_val
-    generated_data = generated_data + min_val
-    
-    return generated_data
 
   else:
     count = int(num_samples / no)
