@@ -1,17 +1,5 @@
-"""Time-series Generative Adversarial Networks (TimeGAN) Codebase.
-
-Reference: Jinsung Yoon, Daniel Jarrett, Mihaela van der Schaar, 
-"Time-series Generative Adversarial Networks," 
-Neural Information Processing Systems (NeurIPS), 2019.
-
-Paper link: https://papers.nips.cc/paper/8789-time-series-generative-adversarial-networks
-
-Last updated Date: April 24th 2020
-Code author: Jinsung Yoon (jsyoon0823@gmail.com)
-
------------------------------
-
-predictive_metrics.py
+"""
+discriminative_metrics.py
 
 Note: Use post-hoc RNN to classify original data and synthetic data
 
@@ -50,7 +38,10 @@ def discriminative_score_metrics (ori_data, generated_data):
      
   ## Builde a post-hoc RNN discriminator network 
   # Network parameters
-  hidden_dim = int(dim/2)
+  if dim == 1:
+    hidden_dim = 1
+  else:
+    hidden_dim = int(dim/2)
   iterations = 2000
   batch_size = 128
     

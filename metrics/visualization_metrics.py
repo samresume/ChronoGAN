@@ -1,16 +1,4 @@
-"""Time-series Generative Adversarial Networks (TimeGAN) Codebase.
-
-Reference: Jinsung Yoon, Daniel Jarrett, Mihaela van der Schaar, 
-"Time-series Generative Adversarial Networks," 
-Neural Information Processing Systems (NeurIPS), 2019.
-
-Paper link: https://papers.nips.cc/paper/8789-time-series-generative-adversarial-networks
-
-Last updated Date: April 24th 2020
-Code author: Jinsung Yoon (jsyoon0823@gmail.com)
-
------------------------------
-
+"""
 visualization_metrics.py
 
 Note: Use PCA or tSNE for generated and original data visualization
@@ -23,13 +11,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
    
-def visualization (ori_data, generated_data, analysis):
+def visualization (ori_data, generated_data, analysis, name):
   """Using PCA or tSNE for generated and original data visualization.
   
   Args:
     - ori_data: original data
     - generated_data: generated synthetic data
     - analysis: tsne or pca
+    - name: name on the figure
   """  
   # Analysis sample size (for faster computation)
   anal_sample_no = min([1000, len(ori_data)])
@@ -72,9 +61,10 @@ def visualization (ori_data, generated_data, analysis):
                 c = colors[anal_sample_no:], alpha = 0.2, label = "Synthetic")
   
     ax.legend()  
-    plt.title('PCA plot of')
+    plt.title('PCA plot of ' + name)
     plt.xlabel('x-pca')
     plt.ylabel('y_pca')
+    plt.savefig('pca_' + name + '.pdf')
     plt.show()
     
   elif analysis == 'tsne':
@@ -96,7 +86,8 @@ def visualization (ori_data, generated_data, analysis):
   
     ax.legend()
       
-    plt.title('t-SNE plot')
+    plt.title('t-SNE plot of ' + name)
     plt.xlabel('x-tsne')
     plt.ylabel('y_tsne')
+    plt.savefig('tsne_' + name + '.pdf')
     plt.show()    
