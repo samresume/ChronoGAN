@@ -388,7 +388,7 @@ def dualgan (ori_data, parameters, num_samples):
   G_loss = (G_loss_U_ae + gamma * G_loss_U_ae_e) + 100 * G_loss_S + 100*G_loss_V  + 20 * ts_structure
             
   # Embedder network loss
-  lambda_c = 0.01
+  lambda_c = 0.001
   E_loss_T00 = tf.compat.v1.losses.mean_squared_error(X, X_tilde)
   E_loss_U = tf.compat.v1.losses.sigmoid_cross_entropy(tf.ones_like(Y_ae_fake), Y_ae_fake)
   
