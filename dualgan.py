@@ -382,10 +382,10 @@ def dualgan (ori_data, parameters, num_samples):
   #---------
 
 
-  ts_structure = mean_weighted_average_mse + std_weighted_average_mse + mean_slope_mse + std_slope_mse + mean_median_mse + std_median_mse + mean_skew_mse + std_skew_mse
+  ts_structure = mean_weighted_average_mse + std_weighted_average_mse + mean_slope_mse + std_slope_mse + 0.5*mean_median_mse + 0.5*std_median_mse + 0.5*mean_skew_mse + 0.5*std_skew_mse
 
   # 4. Summation
-  G_loss = (G_loss_U_ae + gamma * G_loss_U_ae_e) + 100 * G_loss_S + 100*G_loss_V  + 20 * ts_structure
+  G_loss = (G_loss_U_ae + gamma * G_loss_U_ae_e) + 100 * tf.sqrt(G_loss_S) + 100*G_loss_V  + 25 * ts_structure
             
   # Embedder network loss
   lambda_c = 0.001
