@@ -1,4 +1,4 @@
-"""DualGAN: Dual Adversarial Time Series Generation with Generative Adversarial Networks and Autoencoders
+"""ChronoGAN: Supervised and Embedded Generative Adversarial Networks for Time Series Generation
 
 """
 
@@ -18,14 +18,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 from utils import extract_time, rnn_cell, random_generator, batch_generator
 
-def dualgan (ori_data, parameters, num_samples):
-  """DualGAN function.
+def chronogan (ori_data, parameters, num_samples):
+  """ChronoGAN function.
   
   Use original data as training set to generater synthetic data (time-series)
   
   Args:
     - ori_data: original time-series data
-    - parameters: DualGAN network parameters
+    - parameters: ChronoGAN network parameters
     
   Returns:
     - generated_data: generated time-series data
@@ -403,7 +403,7 @@ def dualgan (ori_data, parameters, num_samples):
   G_solver = tf.compat.v1.train.AdamOptimizer().minimize(G_loss, var_list = g_vars + s_vars)      
   GS_solver = tf.compat.v1.train.AdamOptimizer().minimize(G_loss_S, var_list = g_vars + s_vars)   
         
-  ## DualGAN training   
+  ## ChronoGAN training   
   sess = tf.compat.v1.Session()
   sess.run(tf.compat.v1.global_variables_initializer())
     
