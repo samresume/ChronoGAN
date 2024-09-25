@@ -6,6 +6,25 @@ Generating time series data using Generative Adversarial Networks (GANs) present
 
 <img src="chronogan.svg" width="600" alt="ChronoGAN Architecture" title="ChronoGAN Architecture">
 
+## How to Cite
+
+If you find our method useful in your research or work, we kindly ask that you cite our paper. The paper associated with this repository has been accepted at ICMLA 2024 and is now available on arXiv:
+[https://arxiv.org/abs/2409.14013](https://arxiv.org/abs/2409.14013)
+
+```bash
+@misc{eskandarinasab2024chronogansupervisedembeddedgenerative,
+      title={ChronoGAN: Supervised and Embedded Generative Adversarial Networks for Time Series Generation}, 
+      author={MohammadReza EskandariNasab and Shah Muhammad Hamdi and Soukaina Filali Boubrahimi},
+      year={2024},
+      eprint={2409.14013},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2409.14013}, 
+}
+```
+
+We appreciate your citation!
+
 
 ## Installation
 Clone the repository and install dependencies:
