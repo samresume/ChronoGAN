@@ -12,7 +12,7 @@ If you find our method useful in your research or work, we kindly ask that you c
 [https://arxiv.org/abs/2409.14013](https://arxiv.org/abs/2409.14013)
 
 ```bash
-@misc{eskandarinasab2024chronogansupervisedembeddedgenerative,
+@misc{chronogan2024,
       title={ChronoGAN: Supervised and Embedded Generative Adversarial Networks for Time Series Generation}, 
       author={MohammadReza EskandariNasab and Shah Muhammad Hamdi and Soukaina Filali Boubrahimi},
       year={2024},
