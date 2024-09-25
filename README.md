@@ -11,6 +11,8 @@ Generating time series data using Generative Adversarial Networks (GANs) present
 If you find our method useful in your research or work, we kindly ask that you cite our paper. The paper associated with this repository has been accepted at ICMLA 2024 and is now available on arXiv:
 [https://arxiv.org/abs/2409.14013](https://arxiv.org/abs/2409.14013)
 
+Here is the BibTeX citation for your reference:
+
 ```bash
 @misc{chronogan2024,
       title={ChronoGAN: Supervised and Embedded Generative Adversarial Networks for Time Series Generation}, 
