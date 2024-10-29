@@ -47,3 +47,20 @@ jupyter notebook tutorial.ipynb
 - `data_loading.py`: Functions for loading and preprocessing data.
 - `utils.py`: Helper utilities for the model.
 
+
+## Copy Right
+The paper associated with this repository has been accepted at ICMLA 2024 as a regular paper for oral presentation. We kindly ask you to provide a citation to acknowledge our work. Thank you for your support!
+<p><a href="https://arxiv.org/abs/2409.14013" target="_blank">arXiv: 2409.14013</a>.</p>
+
+ ```
+@misc{eskandarinasab2024chronogan,
+      title={ChronoGAN: Supervised and Embedded Generative Adversarial Networks for Time Series Generation}, 
+      author={MohammadReza EskandariNasab and Shah Muhammad Hamdi and Soukaina Filali Boubrahimi},
+      year={2024},
+      eprint={2409.14013},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2409.14013}, 
+}
+```
+
