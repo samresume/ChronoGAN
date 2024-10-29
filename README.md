@@ -47,4 +47,6 @@ jupyter notebook tutorial.ipynb
 - `data_loading.py`: Functions for loading and preprocessing data.
 - `utils.py`: Helper utilities for the model.
 
+## License
 
+This project is licensed under the MIT License.
